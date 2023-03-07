@@ -1,0 +1,16 @@
+[Unit]
+Description=gunicorn daemon
+#Requires=gunicorn.socket
+After=network.target
+After=syslog.target
+
+[Service]
+#PIDFile=/var/run/gunicorn/pid
+User=srvtest
+Group=srvtest
+
+Environment=sitedir=/opt/kube_api
+ExecStart=/usr/bin/gunicorn --bind 0.0.0.0:5000 --chdir /opt/kube_api kube_proxy:app -w2 --threads 2 --log-file /var/log/gunicorn/gunicorn.log --log-level DEBUG
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s TERM $MAINPID
+PrivateTmp=true

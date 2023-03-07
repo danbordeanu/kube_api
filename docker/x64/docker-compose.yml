@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+  mem:
+    build:
+      context: ./docker_memcached
+      dockerfile: Dockerfile
+    image: eg_memcached
+    ports:
+      - '11211:11211'
+    restart: always
+  nginx:
+    build:
+      context: ./docker_nginx
+      dockerfile: Dockerfile
+    image: eg_nginx
+    ports:
+      - '8080:8080'
+    links:
+      - 'kube'
+    restart: always
+  kube:
+    build:
+      context: ./docker_kube
+      dockerfile: Dockerfile
+    image: eg_kube
+    environment:
+      - PORT=5000
+      - DEBUG=True
+      - NGINX_HOST=nginx
+      - MEMCACHED_HOST=mem
+      - MEMCACHED_PORT=11211
+     volumes:
+      - app_sourcecode:/opt/kube
+    ports:
+      - '5000:5000'
+    depends_on:
+      - 'nginx'
+      - 'mem'
+    restart: always
+
+volumes:
+  app_sourcecode:
+    driver_opts:
+      type: none
+      device: /path/kube_api/
+      o: bind
